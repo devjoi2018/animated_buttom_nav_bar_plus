@@ -1,33 +1,57 @@
-import 'package:animated_bottom_nav_bar_plus/utils/clip_shadow.dart';
+import 'package:animated_bottom_nav_bar_plus/utils/floating_button_styles.dart';
+import 'package:animated_bottom_nav_bar_plus/utils/floating_center_button.dart';
+import 'package:animated_bottom_nav_bar_plus/utils/global_memory.dart';
 import 'package:animated_bottom_nav_bar_plus/utils/mediaquery_util.dart';
+import 'package:animated_bottom_nav_bar_plus/utils/nav_bar.dart';
+import 'package:animated_bottom_nav_bar_plus/utils/nav_bar_path.dart';
+import 'package:animated_bottom_nav_bar_plus/utils/radial_menu.dart';
 import 'package:flutter/material.dart';
+export 'package:animated_bottom_nav_bar_plus/utils/floating_button_styles.dart';
 
 class AnimatedBottomNavBarPlus extends StatefulWidget {
-  final Color? navBarColor;
+  /// Sets the color of the [AnimatedButtonNavBarPlus] widget,
+  /// if the value is null the default color is set to white.
+  final Color? backgroundColor;
+
+  /// Sets the color of the selected item.
   final Color? selectedColor;
-  final Color? unselectedColor;
-  final Color? colorCalendarTask;
-  final Color? colorQuikTask;
-  final Color? colorListTask;
-  final Color? addColorButtom;
-  final Color? disableColor;
-  final Function() onTapCalendarTask;
-  final Function() onTapListTask;
-  final Function() onTapQuikTask;
+  final FloatingButtonStyles floatingButtonStyles;
+
+  /// Sets the color of the button that is not selected.
+  final Color? colorButtonDisabled;
+
+  /// Sets the elevation value of the [AnimatedButtonNavBarPlus],
+  /// if the value is null it defaults to `10.0`.
+  final double? elevation;
+
+  /// This list receives the screens that you want to display for each
+  /// of the buttons in the [AnimatedButtonNavBarPlus], the list must
+  /// necessarily receive 4 elements to be able to function correctly.
+  final List<Widget> items;
+  final ValueChanged<int>? onPageChanged;
+
+  /// Sets the value of the initial screen, if it is null the
+  /// default value is 0.
+  final int? initialPage;
+  final bool? showLabel;
+  final Function() onTapFloatingButtonLeft;
+  final Function() onTapFloatingButtonRight;
+  final Function() onTapFloatingButtonTop;
 
   const AnimatedBottomNavBarPlus({
     Key? key,
-    this.navBarColor,
+    this.backgroundColor,
     this.selectedColor,
-    this.unselectedColor,
-    this.colorCalendarTask,
-    this.colorQuikTask,
-    this.colorListTask,
-    this.addColorButtom,
-    this.disableColor,
-    required this.onTapCalendarTask,
-    required this.onTapListTask,
-    required this.onTapQuikTask,
+    this.colorButtonDisabled,
+    this.elevation,
+    this.initialPage,
+    this.showLabel,
+    required this.floatingButtonStyles,
+    required this.onTapFloatingButtonLeft,
+    required this.onTapFloatingButtonRight,
+    required this.onTapFloatingButtonTop,
+    this.onPageChanged,
+    required this.items,
   }) : super(key: key);
 
   @override
@@ -38,7 +62,9 @@ class _AnimatedBottomNavBarPlusState extends State<AnimatedBottomNavBarPlus> wit
   /* -------------------------------------------------------------------------- */
   /*                                 CONTROLLERS                                */
   /* -------------------------------------------------------------------------- */
-  late AnimationController _animationContoller, _animationController2, _optionController;
+  late AnimationController _animationContoller;
+  late AnimationController _animationController2;
+  late AnimationController _optionController;
 
   /* -------------------------------------------------------------------------- */
   /*                                  VARIABLES                                 */
@@ -49,20 +75,15 @@ class _AnimatedBottomNavBarPlusState extends State<AnimatedBottomNavBarPlus> wit
   late Animation _curve2;
   late Animation _pathOpacity;
   late Animation _navBarSize;
-  late Animation _taskCalendarPosition;
+  late Animation _floatingButtonLeftPosition;
   late Animation _opacityButtom;
-  late Animation _quikTaskPosition;
-  late Animation _listTaskPosition;
+  late Animation _floatingButtonTopPosition;
+  late Animation _floatingButtonRightPosition;
   late Animation _scaleButtons;
   late Animation _option1;
   late Animation _option2;
   late Animation _option3;
   late Animation _option4;
-
-  int _selectedIndex = 0;
-
-  /// Variable que indica si el menu esta abierto o no
-  bool _menuOpen = false;
 
   /* -------------------------------------------------------------------------- */
   /*                                 LIFECYCLES                                 */
@@ -70,6 +91,8 @@ class _AnimatedBottomNavBarPlusState extends State<AnimatedBottomNavBarPlus> wit
   @override
   void initState() {
     super.initState();
+
+    GlobalMemory.pageController = PageController(initialPage: widget.initialPage ?? 0);
     _animationContoller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 500),
@@ -83,27 +106,27 @@ class _AnimatedBottomNavBarPlusState extends State<AnimatedBottomNavBarPlus> wit
       duration: const Duration(milliseconds: 300),
     );
 
-    /// Establece los parametros de animacion para hacer rotar el icono del,
-    /// FloatingActionButtom
+    /// Sets the animation parameters to rotate the icon of the,
+    /// [floatingButtonCenter] widget.
     _rotatedIcon = Tween(begin: 0.0, end: 7.0).animate(_animationController2);
 
-    /// Anima los valores del path del nav bar
-    _curve1 = Tween(begin: _NavBarPath().lowSize, end: 0.0).animate(
+    /// Animate the navBar path values.
+    _curve1 = Tween(begin: NavBarPath().lowSize, end: 0.0).animate(
       CurvedAnimation(
         parent: _animationContoller,
         curve: Curves.bounceIn,
       ),
     );
 
-    /// Anima los valores del path del nav bar
-    _curve2 = Tween(begin: _NavBarPath().bigSize, end: 0.0).animate(
+    /// Animate the navBar path values.
+    _curve2 = Tween(begin: NavBarPath().bigSize, end: 0.0).animate(
       CurvedAnimation(
         parent: _animationContoller,
         curve: Curves.bounceIn,
       ),
     );
 
-    /// Establece los parametros para animar la opacidad del nav bar
+    /// Sets the parameters to animate the opacity of the navBar.
     _pathOpacity = Tween(begin: 1.0, end: 0.0).animate(
       CurvedAnimation(
         parent: _animationController2,
@@ -111,8 +134,8 @@ class _AnimatedBottomNavBarPlusState extends State<AnimatedBottomNavBarPlus> wit
       ),
     );
 
-    /// Establece los parametros para animar la opacidad de los botones
-    /// del menu radial
+    /// Sets the parameters to animate the opacity of the buttons.
+    /// from the radial menu
     _opacityButtom = Tween(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _animationController2,
@@ -120,36 +143,36 @@ class _AnimatedBottomNavBarPlusState extends State<AnimatedBottomNavBarPlus> wit
       ),
     );
 
-    /// Establece un tamaño animado para el navBar
+    /// Sets a dynamic size for the navBar animation.
     _navBarSize = Tween(begin: 0.08, end: 0.0).animate(_animationController2);
 
-    /// Estabele los parametros para animar la escala de los botones del menu radial
+    /// Sets the parameters to animate the scale of the radial menu buttons.
     _scaleButtons = Tween(begin: 0.0, end: 1.0).animate(_animationController2);
 
-    /// Establece los parametros de animacion para el primer boton del navBar
+    /// Sets the animation parameters for the first button of the navBar.
     _option1 = Tween(begin: 1.0, end: 1.1).animate(
       CurvedAnimation(parent: _optionController, curve: Curves.bounceOut),
     );
 
-    /// Establece los parametros de animacion para el segundo boton del navBar
+    /// Sets the animation parameters for the second button of the navBar.
     _option2 = Tween(begin: 1.0, end: 1.1).animate(
       CurvedAnimation(parent: _optionController, curve: Curves.bounceOut),
     );
 
-    /// Establece los parametros de animacion para el tercer boton del navBar
+    /// Sets the animation parameters for the third button of the navBar.
     _option3 = Tween(begin: 1.0, end: 1.1).animate(
       CurvedAnimation(parent: _optionController, curve: Curves.bounceOut),
     );
 
-    /// Establece los parametros de animacion para el cuarto boton del navBar
+    /// Sets the animation parameters for the fourth button of the navBar.
     _option4 = Tween(begin: 1.0, end: 1.1).animate(
       CurvedAnimation(parent: _optionController, curve: Curves.bounceOut),
     );
 
-    /// Inicia este controlador
+    /// start this controller.
     _optionController.forward();
 
-    /// Escucha si el controller ha finalizado la animacion para hacer una animacion en reversa
+    /// Listen if the controller has finished the animation to do a reverse animation.
     _animationContoller.addListener(() {
       if (_animationContoller.status == AnimationStatus.completed) {
         _animationContoller.reverse();
@@ -161,7 +184,8 @@ class _AnimatedBottomNavBarPlusState extends State<AnimatedBottomNavBarPlus> wit
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    /// Establece una animacion para el FloatingActionButtom
+    /// Sets the dynamic parameters for the animation of the
+    /// central floating button that opens the radial menu.
     _buttomBouncing = Tween(
       begin: mediaHeight(context) * 0.042,
       end: mediaHeight(context) * 0.10,
@@ -172,27 +196,27 @@ class _AnimatedBottomNavBarPlusState extends State<AnimatedBottomNavBarPlus> wit
       ),
     );
 
-    /// Establece los parametros para la animacion del boton que agrega
-    /// tareas al calendario
-    _taskCalendarPosition = Tween(
+    /// Sets the dynamic parameters for the animation of the left floating
+    /// button of the radial menu.
+    _floatingButtonLeftPosition = Tween(
       begin: Offset(mediaWidth(context) * 0.44, -mediaHeight(context) * 0.047),
       end: Offset(mediaWidth(context) * 0.19, -mediaHeight(context) * 0.10),
     ).animate(
       CurvedAnimation(parent: _animationController2, curve: Curves.bounceIn),
     );
 
-    /// Establece los parametros para la animacion del boton que agrega
-    /// tareas rapidas
-    _quikTaskPosition = Tween(
+    /// Sets the dynamic parameters for the animation of the top floating
+    /// button of the radial menu.
+    _floatingButtonTopPosition = Tween(
       begin: Offset(mediaWidth(context) * 0.44, -mediaHeight(context) * 0.047),
       end: Offset(mediaWidth(context) * 0.44, -mediaHeight(context) * 0.20),
     ).animate(
       CurvedAnimation(parent: _animationController2, curve: Curves.bounceIn),
     );
 
-    /// Establece los parametros para la animacion del boton que agrega
-    /// lista de tareas
-    _listTaskPosition = Tween(
+    /// Sets the dynamic parameters for the animation of the right floating
+    /// button of the radial menu.
+    _floatingButtonRightPosition = Tween(
       begin: Offset(mediaWidth(context) * 0.44, -mediaHeight(context) * 0.047),
       end: Offset(mediaWidth(context) * 0.71, -mediaHeight(context) * 0.10),
     ).animate(
@@ -205,433 +229,86 @@ class _AnimatedBottomNavBarPlusState extends State<AnimatedBottomNavBarPlus> wit
     _animationContoller.dispose();
     _animationController2.dispose();
     _optionController.dispose();
+    GlobalMemory.pageController.dispose();
     super.dispose();
   }
 
   /* -------------------------------------------------------------------------- */
-  /*                               END LIFECYCLES                               */
+  /*                                   METHODS                                  */
   /* -------------------------------------------------------------------------- */
 
   @override
   Widget build(BuildContext context) {
+    /// Throw an exception if the value of [initialPage] is greater than 3
+    /// or less than 0, the value must be between 0 and 3.
+    if (widget.initialPage != null) {
+      if (widget.initialPage! > 3 || widget.initialPage! < 0) {
+        throw Exception('Initial page must be between 0 and 3');
+      }
+    }
+
+    /// Assigns the value of [initialPage] if it is other than null,
+    /// but if the value is null then the default value 0 is assigned.
+    GlobalMemory.selectedIndex = widget.initialPage ?? 0;
+
+    if (widget.items.length > 4 || widget.items.length < 4) {
+      throw Exception('The number of items must be 4');
+    }
     return Stack(
       children: [
-        _radialMenu(
-          context: context,
-          colorCalendarTask: widget.colorCalendarTask,
-          colorQuikTask: widget.colorQuikTask,
-          colorListTask: widget.colorListTask,
-          onTapCalendarTask: widget.onTapCalendarTask,
-          onTapListTask: widget.onTapListTask,
-          onTapQuikTask: widget.onTapQuikTask,
+        /// List of screens associated with the [NavBar], the [itemCount]
+        /// property must always be equal to 4 because it is the number
+        /// of fixed screens
+        PageView.builder(
+          controller: GlobalMemory.pageController,
+          itemCount: 4,
+          physics: const NeverScrollableScrollPhysics(),
+          itemBuilder: (context, index) {
+            return widget.items[index];
+          },
         ),
-        _navBar(context),
-        _centerButtom(context),
+        RadialMenu(
+          context: context,
+          floatingButtonStyles: widget.floatingButtonStyles,
+          floatingButtonRightPosition: _floatingButtonRightPosition,
+          opacityButtom: _opacityButtom,
+          floatingButtonTopPosition: _floatingButtonTopPosition,
+          scaleButtons: _scaleButtons,
+          floatingButtonLeftPosition: _floatingButtonLeftPosition,
+          controller: _animationController2,
+          colorCalendarTask: widget.floatingButtonStyles.colorFloatingButtonLeft,
+          colorQuikTask: widget.floatingButtonStyles.colorFloatingButtonTop,
+          colorListTask: widget.floatingButtonStyles.colorFloatingButtonRight,
+          onTapFloatingButtonLeft: widget.onTapFloatingButtonLeft,
+          onTapFloatingButtonRight: widget.onTapFloatingButtonRight,
+          onTapFloatingButtonTop: widget.onTapFloatingButtonTop,
+        ),
+        NavBar(
+          animationController: _animationContoller,
+          optionController: _optionController,
+          pathOpacity: _pathOpacity,
+          curve1: _curve1,
+          curve2: _curve2,
+          navBarSize: _navBarSize,
+          option1: _option1,
+          option2: _option2,
+          option3: _option3,
+          option4: _option4,
+          navBarColor: widget.backgroundColor ?? Colors.white,
+          selectedColor: widget.selectedColor ?? Colors.blue,
+          colorButtonDisabled: widget.colorButtonDisabled ?? Colors.grey,
+          elevation: widget.elevation ?? 10.0,
+          onPageChanged: widget.onPageChanged ?? (index) {},
+          showLabel: widget.showLabel ?? true,
+        ),
+        FloatingCenterButton(
+          animationController: _animationContoller,
+          animationController2: _animationController2,
+          buttomBouncing: _buttomBouncing,
+          floatingButtonStyles: widget.floatingButtonStyles,
+          rotatedIcon: _rotatedIcon,
+        ),
       ],
     );
   }
-
-  /// Este metodo construye un menu radial sobre el FloatingActionButtom central
-  /// en el navBar
-  Widget _radialMenu({
-    required BuildContext context,
-    required Function() onTapCalendarTask,
-    required Function() onTapListTask,
-    required Function() onTapQuikTask,
-    Color? colorCalendarTask,
-    Color? colorQuikTask,
-    Color? colorListTask,
-  }) {
-    return AnimatedBuilder(
-      animation: _animationController2,
-      builder: (BuildContext context, Widget? child) {
-        return Stack(
-          children: [
-            /// Boton para agregar tareas al calendario
-            _buildButtom(
-              color: colorCalendarTask,
-              heroTag: '2',
-              icon: Icon(
-                Icons.calendar_today,
-                size: mediaHeight(context) * 0.040,
-                color: Colors.white,
-              ),
-              offset: _taskCalendarPosition.value,
-              onPressed: onTapCalendarTask,
-            ),
-
-            /// Boton para agregar tareas rapidas
-            _buildButtom(
-              color: colorQuikTask,
-              heroTag: '3',
-              icon: Icon(
-                Icons.done_all,
-                size: mediaHeight(context) * 0.040,
-                color: Colors.white,
-              ),
-              offset: _quikTaskPosition.value,
-              onPressed: onTapQuikTask,
-            ),
-
-            /// Boton para agregar tareas de lista
-            _buildButtom(
-              color: colorListTask,
-              heroTag: '4',
-              icon: Icon(
-                Icons.list,
-                size: mediaHeight(context) * 0.040,
-                color: Colors.white,
-              ),
-              offset: _listTaskPosition.value,
-              onPressed: onTapListTask,
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  /// Metodo que construye los botones que agregan tareas
-  Widget _buildButtom({
-    required Offset offset,
-    required Function() onPressed,
-    required String heroTag,
-    required Widget icon,
-    Color? color,
-  }) {
-    return Positioned(
-      bottom: 0,
-      child: Transform.translate(
-        offset: offset,
-        child: Opacity(
-          opacity: _opacityButtom.value,
-          child: Container(
-            alignment: Alignment.center,
-            height: mediaHeight(context) * 0.070,
-            width: mediaHeight(context) * 0.070,
-            child: Transform.scale(
-              scale: _scaleButtons.value,
-              child: SizedBox(
-                height: mediaHeight(context) * 0.070,
-                width: mediaHeight(context) * 0.070,
-                child: FloatingActionButton(
-                  heroTag: heroTag,
-                  backgroundColor: color,
-                  onPressed: onPressed,
-                  child: icon,
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// Este metodo contiene la barra del nav bar
-  Widget _navBar(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _animationContoller,
-      builder: (BuildContext context, Widget? child) {
-        return Positioned(
-          bottom: 0,
-          child: Opacity(
-            opacity: _pathOpacity.value,
-            child: ClipShadow(
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black26.withOpacity(0.1),
-                  offset: Offset(0.0, -mediaHeight(context) * 0.002),
-                  blurRadius: 10.0,
-                  spreadRadius: 1.0,
-                ),
-              ],
-              clipper: _NavBarPath(
-                bigSize: _curve2.value,
-                lowSize: _curve1.value,
-              ),
-              child: Container(
-                width: mediaWidth(context),
-                height: mediaHeight(context) * _navBarSize.value,
-                padding: EdgeInsets.only(
-                  left: mediaWidth(context) * 0.030,
-                  right: mediaWidth(context) * 0.030,
-                ),
-                color: widget.navBarColor,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: _listButtonsNavBar(
-                    selectedColor: widget.selectedColor,
-                    disableColor: widget.disableColor,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  /// Este metodo contiene FloatingActionButtom central del nav bar
-  Widget _centerButtom(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _animationContoller,
-      builder: (BuildContext context, Widget? child) {
-        return Positioned(
-          left: mediaWidth(context) * 0.43,
-          right: mediaWidth(context) * 0.43,
-          bottom: _buttomBouncing.value,
-          child: SizedBox(
-            height: mediaHeight(context) * 0.075,
-            width: mediaHeight(context) * 0.075,
-            child: FloatingActionButton(
-              heroTag: '1',
-              backgroundColor: widget.addColorButtom,
-              child: Transform.rotate(
-                angle: _rotatedIcon.value,
-                child: Icon(
-                  Icons.add,
-                  size: mediaHeight(context) * 0.045,
-                ),
-              ),
-              onPressed: () {
-                _logicaDeAnimacion(context);
-              },
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  /// Este metodo contiene todos los botones que se muestran en el navBar
-  List<Widget> _listButtonsNavBar({
-    Color? selectedColor,
-    Color? disableColor,
-  }) {
-    /// Establece todos los containers que contiene los item en center
-    const MainAxisAlignment aligment = MainAxisAlignment.center;
-
-    /// Establece el estilo de texto de los items
-    final fontSize = mediaHeight(context) * 0.022;
-
-    /// Establece una lista con todos los items del navBar
-    List<Widget> iconList = [
-      AnimatedBuilder(
-        animation: _optionController,
-        builder: (context, child) {
-          return SingleChildScrollView(
-            child: Row(
-              children: [
-                GestureDetector(
-                  child: Transform.scale(
-                    scale: _selectedIndex == 0 ? _option1.value : 1.0,
-                    child: Container(
-                      alignment: Alignment.center,
-                      height: mediaHeight(context) * 0.07,
-                      width: mediaWidth(context) * 0.14,
-                      child: Column(
-                        mainAxisAlignment: aligment,
-                        children: [
-                          Icon(
-                            Icons.calendar_today,
-                            size: mediaHeight(context) * 0.040,
-                            color: _selectedIndex == 0 ? selectedColor : disableColor,
-                          ),
-                          Flexible(
-                            child: Text(
-                              'Tarea',
-                              style: TextStyle(
-                                fontSize: fontSize,
-                                color: _selectedIndex == 0 ? selectedColor : disableColor,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  onTap: () {
-                    _selectedIndex = 0;
-                    _optionController.reset();
-                    _optionController.forward();
-                    setState(() {});
-                  },
-                ),
-                SizedBox(
-                  width: mediaWidth(context) * 0.08,
-                ),
-                GestureDetector(
-                  child: Transform.scale(
-                    scale: _selectedIndex == 1 ? _option2.value : 1.0,
-                    child: Container(
-                      alignment: Alignment.center,
-                      height: mediaHeight(context) * 0.07,
-                      width: mediaWidth(context) * 0.14,
-                      child: Column(
-                        mainAxisAlignment: aligment,
-                        children: [
-                          Icon(
-                            Icons.done_all,
-                            size: mediaHeight(context) * 0.040,
-                            color: _selectedIndex == 1 ? selectedColor : disableColor,
-                          ),
-                          Flexible(
-                            child: Text(
-                              'Nota',
-                              style: TextStyle(
-                                fontSize: fontSize,
-                                color: _selectedIndex == 1 ? selectedColor : disableColor,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  onTap: () {
-                    _selectedIndex = 1;
-                    _optionController.reset();
-                    _optionController.forward();
-                    setState(() {});
-                  },
-                ),
-              ],
-            ),
-          );
-        },
-      ),
-      AnimatedBuilder(
-        animation: _optionController,
-        builder: (context, child) {
-          return SingleChildScrollView(
-            child: Row(
-              children: [
-                GestureDetector(
-                  child: Transform.scale(
-                    scale: _selectedIndex == 2 ? _option3.value : 1.0,
-                    child: Container(
-                      alignment: Alignment.center,
-                      height: mediaHeight(context) * 0.07,
-                      width: mediaWidth(context) * 0.14,
-                      child: Column(
-                        mainAxisAlignment: aligment,
-                        children: [
-                          Icon(
-                            Icons.list,
-                            size: mediaHeight(context) * 0.040,
-                            color: _selectedIndex == 2 ? selectedColor : disableColor,
-                          ),
-                          Flexible(
-                            child: Text(
-                              'Lista',
-                              style: TextStyle(
-                                fontSize: fontSize,
-                                color: _selectedIndex == 2 ? selectedColor : disableColor,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  onTap: () {
-                    _selectedIndex = 2;
-                    _optionController.reset();
-                    _optionController.forward();
-                    setState(() {});
-                  },
-                ),
-                SizedBox(
-                  width: mediaWidth(context) * 0.08,
-                ),
-                GestureDetector(
-                  child: Transform.scale(
-                    scale: _selectedIndex == 3 ? _option4.value : 1.0,
-                    child: Container(
-                      alignment: Alignment.center,
-                      height: mediaHeight(context) * 0.07,
-                      width: mediaWidth(context) * 0.14,
-                      child: Column(
-                        mainAxisAlignment: aligment,
-                        children: [
-                          Icon(
-                            Icons.category,
-                            size: mediaHeight(context) * 0.040,
-                            color: _selectedIndex == 3 ? selectedColor : disableColor,
-                          ),
-                          Flexible(
-                            child: Text(
-                              'Categ',
-                              style: TextStyle(
-                                fontSize: fontSize,
-                                color: _selectedIndex == 3 ? selectedColor : disableColor,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  onTap: () {
-                    _selectedIndex = 3;
-                    _optionController.reset();
-                    _optionController.forward();
-                    setState(() {});
-                  },
-                ),
-              ],
-            ),
-          );
-        },
-      ),
-    ];
-    return iconList;
-  }
-
-  /// Este metodo se encarga de establecer la logica que permite iniciar
-  /// la animacion de cada elemento.
-  void _logicaDeAnimacion(BuildContext context) {
-    _animationContoller.forward();
-    if (_menuOpen == false) {
-      _animationController2.forward();
-      _menuOpen = true;
-      setState(() {});
-    } else {
-      _animationController2.reverse();
-      _menuOpen = false;
-      setState(() {});
-    }
-  }
-}
-
-/// Dibuja la forma del nav bar por medio del CustomClipper
-class _NavBarPath extends CustomClipper<Path> {
-  final double lowSize;
-  final double bigSize;
-
-  _NavBarPath({
-    this.lowSize = 0.2,
-    this.bigSize = 1.0,
-  });
-
-  @override
-  Path getClip(Size size) {
-    final path = Path();
-
-    path.lineTo(size.width * 0.29, 0);
-    path.quadraticBezierTo(size.width * 0.35, 0, size.width * 0.38, size.height * lowSize);
-    path.quadraticBezierTo(size.width * 0.50, size.height * bigSize, size.width * 0.62, size.height * lowSize);
-    path.quadraticBezierTo(size.width * 0.65, 0, size.width * 0.71, 0);
-    path.lineTo(size.width, 0);
-    path.lineTo(size.width, size.height);
-    path.lineTo(0, size.height);
-    path.lineTo(0, 0);
-
-    return path;
-  }
-
-  @override
-  bool shouldReclip(CustomClipper<Path> oldClipper) => true;
 }

@@ -12,16 +12,20 @@ class MyApp extends StatelessWidget {
         appBar: AppBar(
           title: const Text('Material App Bar'),
         ),
-        body: const Center(
-          child: Text('Hello World'),
-        ),
-        bottomNavigationBar: AnimatedBottomNavBarPlus(
-          addColorButtom: Colors.red,
-          disableColor: Colors.grey,
-          navBarColor: Colors.white,
-          onTapCalendarTask: () {},
-          onTapListTask: () {},
-          onTapQuikTask: () {},
+        body: AnimatedBottomNavBarPlus(
+          initialPage: 1,
+          backgroundColor: Colors.white,
+          floatingButtonStyles: FloatingButtonStyles(),
+          colorButtonDisabled: Colors.grey,
+          onTapFloatingButtonLeft: () {},
+          onTapFloatingButtonRight: () {},
+          onTapFloatingButtonTop: () {},
+          items: const [
+            Center(child: Text('Home')),
+            Center(child: Text('Search')),
+            Center(child: Text('Profile')),
+            Center(child: Text('Settings')),
+          ],
         ),
       ),
     );
