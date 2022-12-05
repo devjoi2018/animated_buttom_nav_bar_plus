@@ -1,20 +1,24 @@
 import 'package:animated_bottom_nav_bar_plus/utils/floating_button_styles.dart';
+import 'package:animated_bottom_nav_bar_plus/utils/global_memory.dart';
 import 'package:animated_bottom_nav_bar_plus/utils/mediaquery_util.dart';
 import 'package:flutter/material.dart';
 
 class FloatingCenterButton extends StatefulWidget {
-  final AnimationController animationController;
-  final AnimationController animationController2;
   final Animation buttomBouncing;
   final Animation rotatedIcon;
+  final AnimationController animationController;
+  final AnimationController animationController2;
   final FloatingButtonStyles floatingButtonStyles;
+  bool floatingCentralButtonIsAnimated;
 
-  const FloatingCenterButton({
-    required this.animationController,
-    required this.animationController2,
+  /// This widget draws a floating button in the center of the [navBar]
+  FloatingCenterButton({
     required this.buttomBouncing,
     required this.floatingButtonStyles,
     required this.rotatedIcon,
+    required this.floatingCentralButtonIsAnimated,
+    required this.animationController,
+    required this.animationController2,
   });
 
   @override
@@ -25,8 +29,6 @@ class _FloatingCenterButtonState extends State<FloatingCenterButton> {
   /* -------------------------------------------------------------------------- */
   /*                                  VARIABLES                                 */
   /* -------------------------------------------------------------------------- */
-  /// Variable que indica si el menu esta abierto o no
-  bool _menuOpen = false;
 
   /* -------------------------------------------------------------------------- */
   /*                                   METHODS                                  */
@@ -48,6 +50,11 @@ class _FloatingCenterButtonState extends State<FloatingCenterButton> {
               heroTag: '1',
               elevation: widget.floatingButtonStyles.elevationFloatingCenterButton,
               backgroundColor: widget.floatingButtonStyles.colorFloatingCenterButton,
+              onPressed: !widget.floatingCentralButtonIsAnimated
+                  ? () {
+                      _animationLogic();
+                    }
+                  : null,
               child: Transform.rotate(
                 angle: widget.rotatedIcon.value,
                 child: Icon(
@@ -55,9 +62,6 @@ class _FloatingCenterButtonState extends State<FloatingCenterButton> {
                   size: mediaHeight(context) * 0.045,
                 ),
               ),
-              onPressed: () {
-                _logicaDeAnimacion(context);
-              },
             ),
           ),
         );
@@ -65,17 +69,17 @@ class _FloatingCenterButtonState extends State<FloatingCenterButton> {
     );
   }
 
-  /// Este metodo se encarga de establecer la logica que permite iniciar
-  /// la animacion de cada elemento.
-  void _logicaDeAnimacion(BuildContext context) {
+  /// This method is responsible for establishing the logic that allows starting
+  /// the animation of each element.
+  void _animationLogic() {
     widget.animationController.forward();
-    if (_menuOpen == false) {
+    if (!GlobalMemory.menuIsOpen) {
       widget.animationController2.forward();
-      _menuOpen = true;
+      GlobalMemory.menuIsOpen = true;
       setState(() {});
     } else {
       widget.animationController2.reverse();
-      _menuOpen = false;
+      GlobalMemory.menuIsOpen = false;
       setState(() {});
     }
   }

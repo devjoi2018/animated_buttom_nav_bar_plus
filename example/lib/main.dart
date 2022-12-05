@@ -13,14 +13,26 @@ class MyApp extends StatelessWidget {
           title: const Text('Material App Bar'),
         ),
         body: AnimatedBottomNavBarPlus(
-          initialPage: 1,
+          initialPage: 0,
           backgroundColor: Colors.white,
           floatingButtonStyles: FloatingButtonStyles(),
           colorButtonDisabled: Colors.grey,
-          onTapFloatingButtonLeft: () {},
-          onTapFloatingButtonRight: () {},
-          onTapFloatingButtonTop: () {},
-          items: const [
+          onTapFloatingButtonLeft: () {
+            print('onTapFloatingButtonLeft');
+          },
+          onTapFloatingButtonRight: () {
+            print('onTapFloatingButtonRight');
+          },
+          onTapFloatingButtonTop: () {
+            print('onTapFloatingButtonTop');
+          },
+          navBarItems: [
+            NavBarItem(icon: Icons.home, labelText: 'Home'),
+            NavBarItem(icon: Icons.search, labelText: 'Search'),
+            NavBarItem(icon: Icons.person, labelText: 'Profile'),
+            NavBarItem(icon: Icons.settings, labelText: 'Settings'),
+          ],
+          pages: const [
             Center(child: Text('Home')),
             Center(child: Text('Search')),
             Center(child: Text('Profile')),

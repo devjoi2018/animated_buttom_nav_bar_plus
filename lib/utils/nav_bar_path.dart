@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-/// Dibuja la forma del nav bar por medio del CustomClipper
 class NavBarPath extends CustomClipper<Path> {
   final double lowSize;
   final double bigSize;
 
+  /// Draw the shape of the nav bar using the CustomClipper
   NavBarPath({
     this.lowSize = 0.2,
     this.bigSize = 1.0,

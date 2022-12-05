@@ -3,10 +3,13 @@ import 'package:animated_bottom_nav_bar_plus/utils/floating_center_button.dart';
 import 'package:animated_bottom_nav_bar_plus/utils/global_memory.dart';
 import 'package:animated_bottom_nav_bar_plus/utils/mediaquery_util.dart';
 import 'package:animated_bottom_nav_bar_plus/utils/nav_bar.dart';
+import 'package:animated_bottom_nav_bar_plus/utils/nav_bar_item.dart';
 import 'package:animated_bottom_nav_bar_plus/utils/nav_bar_path.dart';
 import 'package:animated_bottom_nav_bar_plus/utils/radial_menu.dart';
 import 'package:flutter/material.dart';
+
 export 'package:animated_bottom_nav_bar_plus/utils/floating_button_styles.dart';
+export 'package:animated_bottom_nav_bar_plus/utils/nav_bar_item.dart';
 
 class AnimatedBottomNavBarPlus extends StatefulWidget {
   /// Sets the color of the [AnimatedButtonNavBarPlus] widget,
@@ -15,6 +18,9 @@ class AnimatedBottomNavBarPlus extends StatefulWidget {
 
   /// Sets the color of the selected item.
   final Color? selectedColor;
+
+  /// Allows you to set the styles of the floating buttons
+  /// in the radial menu including the central button
   final FloatingButtonStyles floatingButtonStyles;
 
   /// Sets the color of the button that is not selected.
@@ -27,13 +33,17 @@ class AnimatedBottomNavBarPlus extends StatefulWidget {
   /// This list receives the screens that you want to display for each
   /// of the buttons in the [AnimatedButtonNavBarPlus], the list must
   /// necessarily receive 4 elements to be able to function correctly.
-  final List<Widget> items;
+  final List<Widget> pages;
   final ValueChanged<int>? onPageChanged;
 
-  /// Sets the value of the initial screen, if it is null the
+  /// Sets the value of the initial screen, if it is [null] the
   /// default value is 0.
   final int? initialPage;
+
+  /// It allows to show or hide the texts that are below each
+  /// item in the [AnimatedBottomNavBarPlus].
   final bool? showLabel;
+  final List<NavBarItem> navBarItems;
   final Function() onTapFloatingButtonLeft;
   final Function() onTapFloatingButtonRight;
   final Function() onTapFloatingButtonTop;
@@ -46,12 +56,13 @@ class AnimatedBottomNavBarPlus extends StatefulWidget {
     this.elevation,
     this.initialPage,
     this.showLabel,
+    this.onPageChanged,
     required this.floatingButtonStyles,
     required this.onTapFloatingButtonLeft,
     required this.onTapFloatingButtonRight,
     required this.onTapFloatingButtonTop,
-    this.onPageChanged,
-    required this.items,
+    required this.pages,
+    required this.navBarItems,
   }) : super(key: key);
 
   @override
@@ -62,8 +73,6 @@ class _AnimatedBottomNavBarPlusState extends State<AnimatedBottomNavBarPlus> wit
   /* -------------------------------------------------------------------------- */
   /*                                 CONTROLLERS                                */
   /* -------------------------------------------------------------------------- */
-  late AnimationController _animationContoller;
-  late AnimationController _animationController2;
   late AnimationController _optionController;
 
   /* -------------------------------------------------------------------------- */
@@ -85,6 +94,10 @@ class _AnimatedBottomNavBarPlusState extends State<AnimatedBottomNavBarPlus> wit
   late Animation _option3;
   late Animation _option4;
 
+  /// Variable that allows to control the state of the
+  /// animation of the [floatingCentralButton]
+  bool _floatingCentralButtonIsAnimated = false;
+
   /* -------------------------------------------------------------------------- */
   /*                                 LIFECYCLES                                 */
   /* -------------------------------------------------------------------------- */
@@ -93,13 +106,13 @@ class _AnimatedBottomNavBarPlusState extends State<AnimatedBottomNavBarPlus> wit
     super.initState();
 
     GlobalMemory.pageController = PageController(initialPage: widget.initialPage ?? 0);
-    _animationContoller = AnimationController(
+    GlobalMemory.animationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 500),
+      duration: const Duration(milliseconds: 420),
     );
-    _animationController2 = AnimationController(
+    GlobalMemory.animationController2 = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 500),
+      duration: const Duration(milliseconds: 420),
     );
     _optionController = AnimationController(
       vsync: this,
@@ -108,12 +121,12 @@ class _AnimatedBottomNavBarPlusState extends State<AnimatedBottomNavBarPlus> wit
 
     /// Sets the animation parameters to rotate the icon of the,
     /// [floatingButtonCenter] widget.
-    _rotatedIcon = Tween(begin: 0.0, end: 7.0).animate(_animationController2);
+    _rotatedIcon = Tween(begin: 0.0, end: 7.0).animate(GlobalMemory.animationController2);
 
     /// Animate the navBar path values.
     _curve1 = Tween(begin: NavBarPath().lowSize, end: 0.0).animate(
       CurvedAnimation(
-        parent: _animationContoller,
+        parent: GlobalMemory.animationController,
         curve: Curves.bounceIn,
       ),
     );
@@ -121,7 +134,7 @@ class _AnimatedBottomNavBarPlusState extends State<AnimatedBottomNavBarPlus> wit
     /// Animate the navBar path values.
     _curve2 = Tween(begin: NavBarPath().bigSize, end: 0.0).animate(
       CurvedAnimation(
-        parent: _animationContoller,
+        parent: GlobalMemory.animationController,
         curve: Curves.bounceIn,
       ),
     );
@@ -129,7 +142,7 @@ class _AnimatedBottomNavBarPlusState extends State<AnimatedBottomNavBarPlus> wit
     /// Sets the parameters to animate the opacity of the navBar.
     _pathOpacity = Tween(begin: 1.0, end: 0.0).animate(
       CurvedAnimation(
-        parent: _animationController2,
+        parent: GlobalMemory.animationController2,
         curve: const Interval(0.30, 0.60),
       ),
     );
@@ -138,16 +151,16 @@ class _AnimatedBottomNavBarPlusState extends State<AnimatedBottomNavBarPlus> wit
     /// from the radial menu
     _opacityButtom = Tween(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
-        parent: _animationController2,
+        parent: GlobalMemory.animationController2,
         curve: const Interval(0.40, 1.0),
       ),
     );
 
     /// Sets a dynamic size for the navBar animation.
-    _navBarSize = Tween(begin: 0.08, end: 0.0).animate(_animationController2);
+    _navBarSize = Tween(begin: 0.08, end: 0.0).animate(GlobalMemory.animationController2);
 
     /// Sets the parameters to animate the scale of the radial menu buttons.
-    _scaleButtons = Tween(begin: 0.0, end: 1.0).animate(_animationController2);
+    _scaleButtons = Tween(begin: 0.0, end: 1.0).animate(GlobalMemory.animationController2);
 
     /// Sets the animation parameters for the first button of the navBar.
     _option1 = Tween(begin: 1.0, end: 1.1).animate(
@@ -173,10 +186,23 @@ class _AnimatedBottomNavBarPlusState extends State<AnimatedBottomNavBarPlus> wit
     _optionController.forward();
 
     /// Listen if the controller has finished the animation to do a reverse animation.
-    _animationContoller.addListener(() {
-      if (_animationContoller.status == AnimationStatus.completed) {
-        _animationContoller.reverse();
+    GlobalMemory.animationController.addListener(() {
+      if (GlobalMemory.animationController.status == AnimationStatus.completed) {
+        GlobalMemory.animationController.reverse();
       }
+    });
+
+    /// We validate if the animation of the [floatingCenterButton] has not
+    /// finished to avoid that the user can press the button many times before
+    /// finishing the animation, in this way we can avoid the failure of the button.
+    GlobalMemory.animationController2.addListener(() {
+      setState(() {
+        if (GlobalMemory.animationController2.isAnimating) {
+          _floatingCentralButtonIsAnimated = true;
+        } else {
+          _floatingCentralButtonIsAnimated = false;
+        }
+      });
     });
   }
 
@@ -191,7 +217,7 @@ class _AnimatedBottomNavBarPlusState extends State<AnimatedBottomNavBarPlus> wit
       end: mediaHeight(context) * 0.10,
     ).animate(
       CurvedAnimation(
-        parent: _animationContoller,
+        parent: GlobalMemory.animationController,
         curve: Curves.bounceIn,
       ),
     );
@@ -199,35 +225,35 @@ class _AnimatedBottomNavBarPlusState extends State<AnimatedBottomNavBarPlus> wit
     /// Sets the dynamic parameters for the animation of the left floating
     /// button of the radial menu.
     _floatingButtonLeftPosition = Tween(
-      begin: Offset(mediaWidth(context) * 0.44, -mediaHeight(context) * 0.047),
+      begin: Offset(mediaWidth(context) * 0.43, -mediaHeight(context) * 0.044),
       end: Offset(mediaWidth(context) * 0.19, -mediaHeight(context) * 0.10),
     ).animate(
-      CurvedAnimation(parent: _animationController2, curve: Curves.bounceIn),
+      CurvedAnimation(parent: GlobalMemory.animationController2, curve: Curves.bounceIn),
     );
 
     /// Sets the dynamic parameters for the animation of the top floating
     /// button of the radial menu.
     _floatingButtonTopPosition = Tween(
-      begin: Offset(mediaWidth(context) * 0.44, -mediaHeight(context) * 0.047),
+      begin: Offset(mediaWidth(context) * 0.43, -mediaHeight(context) * 0.044),
       end: Offset(mediaWidth(context) * 0.44, -mediaHeight(context) * 0.20),
     ).animate(
-      CurvedAnimation(parent: _animationController2, curve: Curves.bounceIn),
+      CurvedAnimation(parent: GlobalMemory.animationController2, curve: Curves.bounceIn),
     );
 
     /// Sets the dynamic parameters for the animation of the right floating
     /// button of the radial menu.
     _floatingButtonRightPosition = Tween(
-      begin: Offset(mediaWidth(context) * 0.44, -mediaHeight(context) * 0.047),
+      begin: Offset(mediaWidth(context) * 0.43, -mediaHeight(context) * 0.044),
       end: Offset(mediaWidth(context) * 0.71, -mediaHeight(context) * 0.10),
     ).animate(
-      CurvedAnimation(parent: _animationController2, curve: Curves.bounceIn),
+      CurvedAnimation(parent: GlobalMemory.animationController2, curve: Curves.bounceIn),
     );
   }
 
   @override
   void dispose() {
-    _animationContoller.dispose();
-    _animationController2.dispose();
+    GlobalMemory.animationController.dispose();
+    GlobalMemory.animationController2.dispose();
     _optionController.dispose();
     GlobalMemory.pageController.dispose();
     super.dispose();
@@ -239,6 +265,11 @@ class _AnimatedBottomNavBarPlusState extends State<AnimatedBottomNavBarPlus> wit
 
   @override
   Widget build(BuildContext context) {
+    /// Throw an exception if the value of the items is different from 4.
+    if (widget.navBarItems.length > 4 || widget.navBarItems.length < 4) {
+      throw Exception('The number of elements of type NavBaerItem must be equal to 4');
+    }
+
     /// Throw an exception if the value of [initialPage] is greater than 3
     /// or less than 0, the value must be between 0 and 3.
     if (widget.initialPage != null) {
@@ -251,8 +282,8 @@ class _AnimatedBottomNavBarPlusState extends State<AnimatedBottomNavBarPlus> wit
     /// but if the value is null then the default value 0 is assigned.
     GlobalMemory.selectedIndex = widget.initialPage ?? 0;
 
-    if (widget.items.length > 4 || widget.items.length < 4) {
-      throw Exception('The number of items must be 4');
+    if (widget.pages.length > 4 || widget.pages.length < 4) {
+      throw Exception('The number of pages must be 4');
     }
     return Stack(
       children: [
@@ -264,7 +295,7 @@ class _AnimatedBottomNavBarPlusState extends State<AnimatedBottomNavBarPlus> wit
           itemCount: 4,
           physics: const NeverScrollableScrollPhysics(),
           itemBuilder: (context, index) {
-            return widget.items[index];
+            return widget.pages[index];
           },
         ),
         RadialMenu(
@@ -275,16 +306,16 @@ class _AnimatedBottomNavBarPlusState extends State<AnimatedBottomNavBarPlus> wit
           floatingButtonTopPosition: _floatingButtonTopPosition,
           scaleButtons: _scaleButtons,
           floatingButtonLeftPosition: _floatingButtonLeftPosition,
-          controller: _animationController2,
-          colorCalendarTask: widget.floatingButtonStyles.colorFloatingButtonLeft,
-          colorQuikTask: widget.floatingButtonStyles.colorFloatingButtonTop,
-          colorListTask: widget.floatingButtonStyles.colorFloatingButtonRight,
+          controller: GlobalMemory.animationController2,
+          colorFloatingButtonLeft: widget.floatingButtonStyles.colorFloatingButtonLeft,
+          colorFloatingButtonTop: widget.floatingButtonStyles.colorFloatingButtonTop,
+          colorFloatingButtonRight: widget.floatingButtonStyles.colorFloatingButtonRight,
           onTapFloatingButtonLeft: widget.onTapFloatingButtonLeft,
           onTapFloatingButtonRight: widget.onTapFloatingButtonRight,
           onTapFloatingButtonTop: widget.onTapFloatingButtonTop,
         ),
         NavBar(
-          animationController: _animationContoller,
+          animationController: GlobalMemory.animationController,
           optionController: _optionController,
           pathOpacity: _pathOpacity,
           curve1: _curve1,
@@ -300,13 +331,15 @@ class _AnimatedBottomNavBarPlusState extends State<AnimatedBottomNavBarPlus> wit
           elevation: widget.elevation ?? 10.0,
           onPageChanged: widget.onPageChanged ?? (index) {},
           showLabel: widget.showLabel ?? true,
+          navBarItems: widget.navBarItems,
         ),
         FloatingCenterButton(
-          animationController: _animationContoller,
-          animationController2: _animationController2,
+          animationController: GlobalMemory.animationController,
+          animationController2: GlobalMemory.animationController2,
           buttomBouncing: _buttomBouncing,
           floatingButtonStyles: widget.floatingButtonStyles,
           rotatedIcon: _rotatedIcon,
+          floatingCentralButtonIsAnimated: _floatingCentralButtonIsAnimated,
         ),
       ],
     );

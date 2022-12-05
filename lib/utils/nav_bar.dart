@@ -1,6 +1,7 @@
 import 'package:animated_bottom_nav_bar_plus/utils/clip_shadow.dart';
 import 'package:animated_bottom_nav_bar_plus/utils/global_memory.dart';
 import 'package:animated_bottom_nav_bar_plus/utils/mediaquery_util.dart';
+import 'package:animated_bottom_nav_bar_plus/utils/nav_bar_item.dart';
 import 'package:animated_bottom_nav_bar_plus/utils/nav_bar_path.dart';
 import 'package:flutter/material.dart';
 
@@ -21,7 +22,9 @@ class NavBar extends StatefulWidget {
   final double elevation;
   final ValueChanged<int> onPageChanged;
   final bool? showLabel;
+  final List<NavBarItem> navBarItems;
 
+  ///This widget draws the [navBar] and its items
   const NavBar({
     required this.animationController,
     required this.optionController,
@@ -39,6 +42,7 @@ class NavBar extends StatefulWidget {
     required this.elevation,
     required this.onPageChanged,
     required this.showLabel,
+    required this.navBarItems,
   });
 
   @override
@@ -92,51 +96,25 @@ class _NavBarState extends State<NavBar> {
     );
   }
 
-  /// Este metodo contiene todos los botones que se muestran en el navBar
+  /// This method contains all the buttons that are displayed on the [navBar].
   List<Widget> _listButtonsNavBar({
     Color? selectedColor,
     Color? colorButtonDisabled,
   }) {
-    /// Establece todos los containers que contiene los item en center
-    const MainAxisAlignment aligment = MainAxisAlignment.center;
-
-    /// Set the icon size of the items
-    final iconSize = mediaHeight(context) * 0.038;
-
-    /// Establece una lista con todos los items del navBar
+    /// Shows a list with all the items in the [navBar].
     List<Widget> iconList = [
       AnimatedBuilder(
         animation: widget.optionController,
         builder: (context, child) {
           return Row(
             children: [
-              GestureDetector(
-                child: Transform.scale(
-                  scale: GlobalMemory.selectedIndex == 0 ? widget.option1.value : 1.0,
-                  child: SingleChildScrollView(
-                    child: Container(
-                      alignment: Alignment.center,
-                      height: mediaHeight(context) * 0.07,
-                      width: mediaWidth(context) * 0.14,
-                      child: Column(
-                        mainAxisAlignment: aligment,
-                        children: [
-                          Icon(
-                            Icons.calendar_today,
-                            size: iconSize,
-                            color: GlobalMemory.selectedIndex == 0 ? selectedColor : colorButtonDisabled,
-                          ),
-                          Flexible(
-                            child: _textLabel(
-                              text: 'Tarea',
-                              color: GlobalMemory.selectedIndex == 0 ? selectedColor : colorButtonDisabled,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
+              _navBarItem(
+                index: 0,
+                icon: widget.navBarItems[0].icon,
+                labelText: widget.navBarItems[0].labelText,
+                context: context,
+                colorButtonDisabled: colorButtonDisabled,
+                selectedColor: selectedColor,
                 onTap: () {
                   GlobalMemory.selectedIndex = 0;
                   GlobalMemory.pageController.animateToPage(
@@ -153,33 +131,13 @@ class _NavBarState extends State<NavBar> {
               SizedBox(
                 width: mediaWidth(context) * 0.08,
               ),
-              GestureDetector(
-                child: Transform.scale(
-                  scale: GlobalMemory.selectedIndex == 1 ? widget.option2.value : 1.0,
-                  child: SingleChildScrollView(
-                    child: Container(
-                      alignment: Alignment.center,
-                      height: mediaHeight(context) * 0.07,
-                      width: mediaWidth(context) * 0.14,
-                      child: Column(
-                        mainAxisAlignment: aligment,
-                        children: [
-                          Icon(
-                            Icons.done_all,
-                            size: iconSize,
-                            color: GlobalMemory.selectedIndex == 1 ? selectedColor : colorButtonDisabled,
-                          ),
-                          Flexible(
-                            child: _textLabel(
-                              text: 'Nota',
-                              color: GlobalMemory.selectedIndex == 1 ? selectedColor : colorButtonDisabled,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
+              _navBarItem(
+                index: 1,
+                icon: widget.navBarItems[1].icon,
+                labelText: widget.navBarItems[1].labelText,
+                context: context,
+                colorButtonDisabled: colorButtonDisabled,
+                selectedColor: selectedColor,
                 onTap: () {
                   GlobalMemory.selectedIndex = 1;
                   GlobalMemory.pageController.animateToPage(
@@ -202,33 +160,13 @@ class _NavBarState extends State<NavBar> {
         builder: (context, child) {
           return Row(
             children: [
-              GestureDetector(
-                child: Transform.scale(
-                  scale: GlobalMemory.selectedIndex == 2 ? widget.option3.value : 1.0,
-                  child: SingleChildScrollView(
-                    child: Container(
-                      alignment: Alignment.center,
-                      height: mediaHeight(context) * 0.07,
-                      width: mediaWidth(context) * 0.14,
-                      child: Column(
-                        mainAxisAlignment: aligment,
-                        children: [
-                          Icon(
-                            Icons.list,
-                            size: iconSize,
-                            color: GlobalMemory.selectedIndex == 2 ? selectedColor : colorButtonDisabled,
-                          ),
-                          Flexible(
-                            child: _textLabel(
-                              text: 'Lista',
-                              color: GlobalMemory.selectedIndex == 2 ? selectedColor : colorButtonDisabled,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
+              _navBarItem(
+                index: 2,
+                icon: widget.navBarItems[2].icon,
+                labelText: widget.navBarItems[2].labelText,
+                context: context,
+                colorButtonDisabled: colorButtonDisabled,
+                selectedColor: selectedColor,
                 onTap: () {
                   GlobalMemory.selectedIndex = 2;
                   GlobalMemory.pageController.animateToPage(
@@ -245,33 +183,13 @@ class _NavBarState extends State<NavBar> {
               SizedBox(
                 width: mediaWidth(context) * 0.08,
               ),
-              GestureDetector(
-                child: Transform.scale(
-                  scale: GlobalMemory.selectedIndex == 3 ? widget.option4.value : 1.0,
-                  child: SingleChildScrollView(
-                    child: Container(
-                      alignment: Alignment.center,
-                      height: mediaHeight(context) * 0.07,
-                      width: mediaWidth(context) * 0.14,
-                      child: Column(
-                        mainAxisAlignment: aligment,
-                        children: [
-                          Icon(
-                            Icons.category,
-                            size: iconSize,
-                            color: GlobalMemory.selectedIndex == 3 ? selectedColor : colorButtonDisabled,
-                          ),
-                          Flexible(
-                            child: _textLabel(
-                              text: 'Categ',
-                              color: GlobalMemory.selectedIndex == 3 ? selectedColor : colorButtonDisabled,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
+              _navBarItem(
+                index: 3,
+                icon: widget.navBarItems[3].icon,
+                labelText: widget.navBarItems[3].labelText,
+                context: context,
+                colorButtonDisabled: colorButtonDisabled,
+                selectedColor: selectedColor,
                 onTap: () {
                   GlobalMemory.selectedIndex = 3;
                   GlobalMemory.pageController.animateToPage(
@@ -293,11 +211,63 @@ class _NavBarState extends State<NavBar> {
     return iconList;
   }
 
+  /// This method contains the model of the [navBar] items
+  Widget _navBarItem({
+    Color? selectedColor,
+    Color? colorButtonDisabled,
+    required BuildContext context,
+    required IconData icon,
+    required String labelText,
+    required int index,
+    required Function() onTap,
+  }) {
+    /// Sets all the containers that contain the items in center
+    const MainAxisAlignment aligment = MainAxisAlignment.center;
+
+    /// Set the icon size of the items
+    final iconSize = mediaHeight(context) * 0.038;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Transform.scale(
+        scale: GlobalMemory.selectedIndex == index ? widget.option4.value : 1.0,
+        child: SingleChildScrollView(
+          child: Container(
+            alignment: Alignment.center,
+            height: mediaHeight(context) * 0.07,
+            width: mediaWidth(context) * 0.14,
+            child: Column(
+              mainAxisAlignment: aligment,
+              children: [
+                Icon(
+                  icon,
+                  size: iconSize,
+                  color: GlobalMemory.selectedIndex == index ? selectedColor : colorButtonDisabled,
+                ),
+                Visibility(
+                  visible: widget.showLabel!,
+                  child: Flexible(
+                    child: _textLabel(
+                      text: labelText,
+                      color: GlobalMemory.selectedIndex == index ? selectedColor : colorButtonDisabled,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// This method contains the style of the Text label that
+  /// is displayed below the icon in the [navBar].
   Widget _textLabel({
     required String text,
     required Color? color,
   }) {
-    /// Set the fontSise of the text in the navBar
+    /// Set the fontSize of the text in the [navBar].
     final fontSize = mediaHeight(context) * 0.015;
 
     return Text(
