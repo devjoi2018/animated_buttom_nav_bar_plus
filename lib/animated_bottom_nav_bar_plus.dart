@@ -106,6 +106,10 @@ class _AnimatedBottomNavBarPlusState extends State<AnimatedBottomNavBarPlus> wit
     super.initState();
 
     GlobalMemory.pageController = PageController(initialPage: widget.initialPage ?? 0);
+
+    /// Assigns the value of [initialPage] if it is other than null,
+    /// but if the value is null then the default value 0 is assigned.
+    GlobalMemory.selectedIndex = widget.initialPage ?? 0;
     GlobalMemory.animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 420),
@@ -277,10 +281,6 @@ class _AnimatedBottomNavBarPlusState extends State<AnimatedBottomNavBarPlus> wit
         throw Exception('Initial page must be between 0 and 3');
       }
     }
-
-    /// Assigns the value of [initialPage] if it is other than null,
-    /// but if the value is null then the default value 0 is assigned.
-    GlobalMemory.selectedIndex = widget.initialPage ?? 0;
 
     if (widget.pages.length > 4 || widget.pages.length < 4) {
       throw Exception('The number of pages must be 4');
