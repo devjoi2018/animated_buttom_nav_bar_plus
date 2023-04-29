@@ -1,6 +1,6 @@
 name: animated_bottom_nav_bar_plus
 description: Animated and highly customizable bottom navigation bar for Flutter applications. It offers a smooth and attractive navigation experience for users, with easy integration into any Flutter project.
-version: 1.2.2
+version: 1.2.3
 repository: https://github.com/devjoi2018/animated_buttom_nav_bar_plus.git
 
 environment:
