@@ -36,6 +36,9 @@ class AnimatedBottomNavBarPlus extends StatefulWidget {
   final List<Widget> pages;
   final ValueChanged<int>? onPageChanged;
 
+  /// This function allows you to know the state of the central button
+  final Function(bool)? onCenterButtonStateChanged;
+
   /// Sets the value of the initial screen, if it is [null] the
   /// default value is 0.
   final int? initialPage;
@@ -57,6 +60,7 @@ class AnimatedBottomNavBarPlus extends StatefulWidget {
     this.initialPage,
     this.showLabel,
     this.onPageChanged,
+    this.onCenterButtonStateChanged,
     required this.floatingButtonStyles,
     required this.onTapFloatingButtonLeft,
     required this.onTapFloatingButtonRight,
@@ -340,6 +344,7 @@ class _AnimatedBottomNavBarPlusState extends State<AnimatedBottomNavBarPlus> wit
           floatingButtonStyles: widget.floatingButtonStyles,
           rotatedIcon: _rotatedIcon,
           floatingCentralButtonIsAnimated: _floatingCentralButtonIsAnimated,
+          onCenterButtonStateChanged: widget.onCenterButtonStateChanged ?? (isPressed) {},
         ),
       ],
     );

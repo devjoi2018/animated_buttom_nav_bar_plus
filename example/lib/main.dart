@@ -14,6 +14,9 @@ class MyApp extends StatelessWidget {
         ),
         body: AnimatedBottomNavBarPlus(
           initialPage: 0,
+          onCenterButtonStateChanged: (value) {
+            print('onButtonStateChanged $value');
+          },
           backgroundColor: Colors.white,
           floatingButtonStyles: FloatingButtonStyles(),
           colorButtonDisabled: Colors.grey,

@@ -9,16 +9,18 @@ class FloatingCenterButton extends StatefulWidget {
   final AnimationController animationController;
   final AnimationController animationController2;
   final FloatingButtonStyles floatingButtonStyles;
-  bool floatingCentralButtonIsAnimated;
+  final bool floatingCentralButtonIsAnimated;
+  final ValueChanged<bool> onCenterButtonStateChanged;
 
-  /// This widget draws a floating button in the center of the [navBar]
-  FloatingCenterButton({
+  const FloatingCenterButton({
+    super.key,
     required this.buttomBouncing,
     required this.floatingButtonStyles,
     required this.rotatedIcon,
     required this.floatingCentralButtonIsAnimated,
     required this.animationController,
     required this.animationController2,
+    required this.onCenterButtonStateChanged,
   });
 
   @override
@@ -26,14 +28,6 @@ class FloatingCenterButton extends StatefulWidget {
 }
 
 class _FloatingCenterButtonState extends State<FloatingCenterButton> {
-  /* -------------------------------------------------------------------------- */
-  /*                                  VARIABLES                                 */
-  /* -------------------------------------------------------------------------- */
-
-  /* -------------------------------------------------------------------------- */
-  /*                                   METHODS                                  */
-  /* -------------------------------------------------------------------------- */
-
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
@@ -69,8 +63,6 @@ class _FloatingCenterButtonState extends State<FloatingCenterButton> {
     );
   }
 
-  /// This method is responsible for establishing the logic that allows starting
-  /// the animation of each element.
   void _animationLogic() {
     widget.animationController.forward();
     if (!GlobalMemory.menuIsOpen) {
@@ -82,5 +74,7 @@ class _FloatingCenterButtonState extends State<FloatingCenterButton> {
       GlobalMemory.menuIsOpen = false;
       setState(() {});
     }
+
+    widget.onCenterButtonStateChanged(GlobalMemory.menuIsOpen);
   }
 }
